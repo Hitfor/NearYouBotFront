@@ -13,8 +13,8 @@ function App() {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
       
-      // Initialize LocationManager if available
-      if (window.Telegram.WebApp.LocationManager) {
+      // Initialize LocationManager if available and version supports it
+      if (window.Telegram.WebApp.LocationManager && window.Telegram.WebApp.version >= '6.1') {
         window.Telegram.WebApp.LocationManager.init((result) => {
           console.log('LocationManager initialized:', result);
         });
@@ -35,55 +35,33 @@ function App() {
 
   const requestLocation = () => {
     // Telegram WebApp Location Manager
-    if (window.Telegram?.WebApp?.LocationManager) {
-      // Перевірити чи доступна геолокація
-      if (window.Telegram.WebApp.LocationManager.isLocationAvailable) {
-        window.Telegram.WebApp.LocationManager.getLocation((locationData) => {
-          if (locationData) {
-            console.log('Location from Telegram:', {
-              latitude: locationData.latitude,
-              longitude: locationData.longitude,
-              accuracy: locationData.accuracy
-            });
-            // Обробити отриману локацію
-          } else {
-            console.error('No location data received from Telegram');
-            requestBrowserLocation();
-          }
-        });
-      } else {
-        console.log('Location not available in Telegram, using browser API');
-        requestBrowserLocation();
-      }
+    if (window.Telegram?.WebApp?.LocationManager && window.Telegram.WebApp.version >= '6.1') {
+      // Спершу запитати дозвіл на доступ до геолокації
+      window.Telegram.WebApp.LocationManager.requestLocationAccess((granted) => {
+        if (granted) {
+          console.log('Location access granted');
+          // Тепер отримати локацію
+          window.Telegram.WebApp.LocationManager.getLocation((locationData) => {
+            if (locationData) {
+              console.log('Location from Telegram:', {
+                latitude: locationData.latitude,
+                longitude: locationData.longitude,
+                accuracy: locationData.accuracy
+              });
+              // Обробити отриману локацію
+            } else {
+              console.error('No location data received from Telegram');
+            }
+          });
+        } else {
+          console.log('Location access denied by user');
+        }
+      });
     } else {
-      // Fallback до браузерного Geolocation API
-      console.log('Telegram LocationManager not available, using browser API');
-      requestBrowserLocation();
+      console.log('Telegram LocationManager not available');
     }
   };
 
-  const requestBrowserLocation = () => {
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude, accuracy } = position.coords;
-          console.log('Browser location:', { latitude, longitude, accuracy });
-          // Обробити отриману локацію
-        },
-        (error) => {
-          console.error('Geolocation error:', error.message);
-          // Показати помилку користувачу
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 60000
-        }
-      );
-    } else {
-      console.error('Geolocation не підтримується цим браузером');
-    }
-  };
 
   const handleButtonPress = (action, event) => {
     const button = event.currentTarget;
