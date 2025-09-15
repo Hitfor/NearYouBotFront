@@ -12,6 +12,13 @@ function App() {
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
+      
+      // Initialize LocationManager if available
+      if (window.Telegram.WebApp.LocationManager) {
+        window.Telegram.WebApp.LocationManager.init((result) => {
+          console.log('LocationManager initialized:', result);
+        });
+      }
     }
 
     // Simulate loading time
@@ -29,18 +36,28 @@ function App() {
   const requestLocation = () => {
     // Telegram WebApp Location Manager
     if (window.Telegram?.WebApp?.LocationManager) {
-      window.Telegram.WebApp.LocationManager.requestLocation()
-        .then((location) => {
-          console.log('Location from Telegram:', location);
-          // Обробити отриману локацію
-        })
-        .catch((error) => {
-          console.error('Telegram location error:', error);
-          // Fallback до браузерного API
-          requestBrowserLocation();
+      // Перевірити чи доступна геолокація
+      if (window.Telegram.WebApp.LocationManager.isLocationAvailable) {
+        window.Telegram.WebApp.LocationManager.getLocation((locationData) => {
+          if (locationData) {
+            console.log('Location from Telegram:', {
+              latitude: locationData.latitude,
+              longitude: locationData.longitude,
+              accuracy: locationData.accuracy
+            });
+            // Обробити отриману локацію
+          } else {
+            console.error('No location data received from Telegram');
+            requestBrowserLocation();
+          }
         });
+      } else {
+        console.log('Location not available in Telegram, using browser API');
+        requestBrowserLocation();
+      }
     } else {
       // Fallback до браузерного Geolocation API
+      console.log('Telegram LocationManager not available, using browser API');
       requestBrowserLocation();
     }
   };
