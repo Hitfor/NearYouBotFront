@@ -25,24 +25,6 @@
   position: relative;
 }
 
-.logo-container::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 120px;
-  height: 120px;
-  border-radius: var(--radius-full);
-  background: radial-gradient(circle, var(--color-glow) 0%, transparent 70%);
-  transform: translate(-50%, -50%);
-  z-index: -1;
-  animation: pulse 2s ease-in-out infinite;
-}
-
-.logo {
-  filter: drop-shadow(0 8px 24px var(--color-glow)) drop-shadow(0 4px 8px var(--color-shadow));
-}
-
 .app-title {
   font-size: 2.75rem;
   font-weight: 800;
@@ -50,7 +32,6 @@
   margin: 0 0 var(--space-sm) 0;
   letter-spacing: -0.03em;
   text-shadow: 0 2px 8px var(--color-glow);
-  animation: titleGlow 2s ease-in-out infinite alternate;
 }
 
 .app-subtitle {
@@ -83,7 +64,6 @@
   border-top: 3px solid var(--color-primary);
   border-radius: var(--radius-full);
   animation: modernSpin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-  box-shadow: 0 0 20px var(--color-glow);
   margin-top: 32px;
 }
 
@@ -118,15 +98,6 @@
   100% {
     opacity: 1;
     transform: scale(1) translateY(0);
-  }
-}
-
-@keyframes titleGlow {
-  0% {
-    text-shadow: 0 2px 8px var(--color-glow);
-  }
-  100% {
-    text-shadow: 0 2px 16px var(--color-glow), 0 0 24px var(--color-primary);
   }
 }
 

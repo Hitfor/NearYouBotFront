@@ -89,26 +89,12 @@
 
 .active-indicator {
   position: absolute;
-  bottom: 2px;
-  width: 5px;
-  height: 5px;
-  background: #ffd700;
+  bottom: 6px;
+  width: 4px;
+  height: 4px;
+  background: #debf11;
   border-radius: 50%;
-  animation: activeGlow 2s ease-in-out infinite;
   z-index: 2;
-}
-
-@keyframes activeGlow {
-  0%, 100% {
-    opacity: 1;
-    box-shadow: 0 0 12px #ffd700, 0 0 24px rgba(255, 215, 0, 0.3);
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.7;
-    box-shadow: 0 0 16px #ffd700, 0 0 32px rgba(255, 215, 0, 0.4);
-    transform: scale(1.2);
-  }
 }
 
 @keyframes slideInFromBottom {

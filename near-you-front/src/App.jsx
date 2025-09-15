@@ -26,6 +26,48 @@ function App() {
     setActiveTab(tabId);
   };
 
+  const requestLocation = () => {
+    // Telegram WebApp Location Manager
+    if (window.Telegram?.WebApp?.LocationManager) {
+      window.Telegram.WebApp.LocationManager.requestLocation()
+        .then((location) => {
+          console.log('Location from Telegram:', location);
+          // Обробити отриману локацію
+        })
+        .catch((error) => {
+          console.error('Telegram location error:', error);
+          // Fallback до браузерного API
+          requestBrowserLocation();
+        });
+    } else {
+      // Fallback до браузерного Geolocation API
+      requestBrowserLocation();
+    }
+  };
+
+  const requestBrowserLocation = () => {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude, accuracy } = position.coords;
+          console.log('Browser location:', { latitude, longitude, accuracy });
+          // Обробити отриману локацію
+        },
+        (error) => {
+          console.error('Geolocation error:', error.message);
+          // Показати помилку користувачу
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000
+        }
+      );
+    } else {
+      console.error('Geolocation не підтримується цим браузером');
+    }
+  };
+
   const handleButtonPress = (action, event) => {
     const button = event.currentTarget;
     
@@ -43,6 +85,11 @@ function App() {
       button.classList.remove('no-hover');
       button.blur();
     }, 800);
+
+    // Виконати дію в залежності від кнопки
+    if (action === 'Use current location') {
+      requestLocation();
+    }
   };
 
   if (isLoading) {
