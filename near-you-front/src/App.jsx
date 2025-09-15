@@ -34,18 +34,27 @@ function App() {
   };
 
   const requestLocation = () => {
+    // Telegram WebApp Location Manager
     if (window.Telegram?.WebApp?.LocationManager && window.Telegram.WebApp.version >= '6.1') {
-      // Прямо отримати локацію (дозвіл запитається автоматично)
-      window.Telegram.WebApp.LocationManager.getLocation((locationData) => {
-        if (locationData) {
-          console.log('Location received:', {
-            latitude: locationData.latitude,
-            longitude: locationData.longitude,
-            accuracy: locationData.accuracy
+      // Спершу запитати дозвіл на доступ до геолокації
+      window.Telegram.WebApp.LocationManager.requestLocationAccess((granted) => {
+        if (granted) {
+          console.log('Location access granted');
+          // Тепер отримати локацію
+          window.Telegram.WebApp.LocationManager.getLocation((locationData) => {
+            if (locationData) {
+              console.log('Location from Telegram:', {
+                latitude: locationData.latitude,
+                longitude: locationData.longitude,
+                accuracy: locationData.accuracy
+              });
+              // Обробити отриману локацію
+            } else {
+              console.error('No location data received from Telegram');
+            }
           });
-          // Обробити отриману локацію
         } else {
-          console.log('Location access denied or unavailable');
+          console.log('Location access denied by user');
         }
       });
     } else {
