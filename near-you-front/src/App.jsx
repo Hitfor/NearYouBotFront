@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import WebApp from '@twa-dev/sdk'
 import './App.css'
 import LoadingPage from './components/LoadingPage'
 import BottomNav from './components/BottomNav'
@@ -6,19 +7,16 @@ import BottomNav from './components/BottomNav'
 function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('groups');
+  
+  // User locations management
+  const [userLocations, setUserLocations] = useState([]);
 
   useEffect(() => {
-    // Initialize Telegram WebApp
-    if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.ready();
-      window.Telegram.WebApp.expand();
-      
-      // Initialize LocationManager if available and version supports it
-      if (window.Telegram.WebApp.LocationManager && window.Telegram.WebApp.version >= '6.1') {
-        window.Telegram.WebApp.LocationManager.init((result) => {
-          console.log('LocationManager initialized:', result);
-        });
-      }
+    // Initialize LocationManager if available
+    if (WebApp.LocationManager) {
+      WebApp.LocationManager.init((result) => {
+        console.log('LocationManager initialized:', result);
+      });
     }
 
     // Simulate loading time
@@ -33,26 +31,37 @@ function App() {
     setActiveTab(tabId);
   };
 
-  const requestLocation = () => {
-    // Telegram WebApp Location Manager
-    if (window.Telegram?.WebApp?.LocationManager && window.Telegram.WebApp.version >= '6.1') {
-      // Отримати локацію (дозвіл запитається автоматично)
-      window.Telegram.WebApp.LocationManager.getLocation((locationData) => {
-        if (locationData) {
-          console.log('Location from Telegram:', {
-            latitude: locationData.latitude,
-            longitude: locationData.longitude,
-            accuracy: locationData.accuracy
-          });
-          // Обробити отриману локацію
-        } else {
-          console.log('Location access denied or unavailable');
-          // Якщо потрібно, можна відкрити налаштування
-          // window.Telegram.WebApp.LocationManager.openSettings();
-        }
-      });
+  // Location management functions
+  const deleteLocation = (locationId) => {
+    setUserLocations(prev => prev.filter(loc => loc.id !== locationId));
+    // TODO: Delete from backend API
+  };
+
+  const addCurrentLocationFromGPS = () => {
+    if (WebApp.LocationManager) {
+      try {
+        WebApp.LocationManager.getLocation((locationData) => {
+          if (locationData) {
+            console.log('GPS location obtained:', locationData);
+            // TODO: Send coordinates to backend for processing
+          }
+        });
+      } catch (error) {
+        console.log('Telegram location failed:', error.message);
+      }
     } else {
-      console.log('Telegram LocationManager not available');
+      // Browser geolocation fallback
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            console.log('Browser location:', position.coords);
+            // TODO: Send coordinates to backend for processing
+          },
+          (error) => {
+            console.error('Geolocation error:', error);
+          }
+        );
+      }
     }
   };
 
@@ -77,7 +86,10 @@ function App() {
 
     // Виконати дію в залежності від кнопки
     if (action === 'Use current location') {
-      requestLocation();
+      addCurrentLocationFromGPS();
+    } else if (action === 'Select on map') {
+      // TODO: Implement map selection
+      console.log('Map selection not implemented yet');
     }
   };
 
@@ -95,8 +107,10 @@ function App() {
         )}
         {activeTab === 'locations' && (
           <div className="tab-content">
-            <h1>Add Location</h1>
-            
+            <div className="locations-header">
+              <h1>My Locations</h1>
+            </div>
+
             <div className="location-buttons">
               <button 
                 className="location-button"
@@ -125,6 +139,33 @@ function App() {
                   <span className="button-title">Choose on Map</span>
                 </div>
               </button>
+            </div>
+
+            <div className="saved-locations">
+              {userLocations.length === 0 ? (
+                <div className="empty-locations">
+                  <p>No locations saved yet</p>
+                </div>
+              ) : (
+                userLocations.map((location) => (
+                  <div key={location.id} className="location-item">
+                    <div className="location-info">
+                      <div className="location-main">
+                        {location.locality && <span className="locality">{location.locality}</span>}
+                        {location.district && <span className="district">, {location.district}</span>}
+                      </div>
+                      <div className="location-secondary">
+                        {location.region && <span className="region">{location.region}</span>}
+                        {location.country && <span className="country">, {location.country}</span>}
+                      </div>
+                      {location.isDefault && <span className="default-badge">Default</span>}
+                    </div>
+                    <div className="location-actions">
+                      <button onClick={() => deleteLocation(location.id)}>Delete</button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         )}
